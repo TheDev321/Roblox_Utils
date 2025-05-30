@@ -1,0 +1,65 @@
+local ModulesLoader = {}
+
+function ModulesLoader.LoadModules(container)
+	local modules = {}
+
+	for _, child in pairs(container:GetChildren()) do
+		if child:IsA("ModuleScript") then
+			modules[child.Name] = require(child)
+		elseif child:IsA("Folder") or child:IsA("Model") then
+			modules[child.Name] = ModulesLoader.LoadModules(child)
+		end
+	end
+
+	return modules
+end
+
+--// Pretty-print table to string with depth limit
+function ModulesLoader.ToString(tbl, indent, visited, maxDepth)
+	indent = indent or 0
+	visited = visited or {}
+	maxDepth = maxDepth or math.huge
+
+	local padding = string.rep("  ", indent)
+	local lines = {}
+
+	if visited[tbl] then
+		table.insert(lines, padding .. "<already printed>")
+		return table.concat(lines, "\n")
+	end
+
+	if indent >= maxDepth then
+		table.insert(lines, padding .. "<max depth reached>")
+		return table.concat(lines, "\n")
+	end
+
+	visited[tbl] = true
+
+	for key, value in pairs(tbl) do
+		local keyStr = tostring(key)
+
+		if typeof(value) == "table" then
+			table.insert(lines, padding .. keyStr .. " = {")
+			table.insert(lines, ModulesLoader.ToString(value, indent + 1, visited, maxDepth))
+			table.insert(lines, padding .. "}")
+		else
+			local valType = typeof(value)
+			local valStr
+
+			if valType == "string" then
+				valStr = '"' .. value .. '"'
+			elseif valType == "number" or valType == "boolean" then
+				valStr = tostring(value)
+			else
+				valStr = "<" .. valType .. ">"
+			end
+
+			table.insert(lines, padding .. keyStr .. " = " .. valStr)
+		end
+	end
+
+	return table.concat(lines, "\n")
+end
+
+
+return ModulesLoader
