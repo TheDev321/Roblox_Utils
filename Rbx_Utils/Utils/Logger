@@ -1,0 +1,19 @@
+local Logger = {}
+Logger.__index = Logger
+
+function Logger.Init()
+	local self = setmetatable({}, Logger)
+	return self
+end
+
+function Logger.log(self, msg: string, msgType: string)
+	if msgType == "print" then
+		print(msg)
+	elseif msgType == "warn" then
+		warn(msg)
+	elseif msgType == "error" then
+		error(msg)
+	end
+end
+
+return Logger
